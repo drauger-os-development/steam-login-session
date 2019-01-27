@@ -16,6 +16,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+set -Ee
+
 ## Global vars
 export XFWM4_PID
 export STEAM_DE_PID=$$
@@ -23,19 +25,27 @@ export WM_NAME
 
 ## Define logging function
 echo "Start Steam Session - `date`" > /tmp/steam-de.$UID.log
-INFO(){ echo "INFO: $*" | tee -a /tmp/steam-de.$UID.log; }
-WARN(){ echo "WARN: $*" | tee -a /tmp/steam-de.$UID.log; }
-ERRO(){ echo "ERRO: $*" | tee -a /tmp/steam-de.$UID.log; exit 1; }
+INFO () {
+        echo "INFO: $*" | tee -a /tmp/steam-de.$UID.log;
+}
 
-function cmd_exist(){
+WARN () {
+        echo "WARN: $*" | tee -a /tmp/steam-de.$UID.log;
+}
+
+ERRO () {
+        echo "ERRO: $*" | tee -a /tmp/steam-de.$UID.log; exit 1;
+}
+
+cmd_exist () {
         command -v "$1" &> /dev/null;
 }
 
-function get_path(){
+get_path () {
         command -v "$1"
 }
 
-function wait_steam_shutdown() {
+wait_steam_shutdown () {
         $STEAM -shutdown &
         count=0
         while [ -d /proc/$OLD_STEAM_PID ]; do
@@ -44,7 +54,7 @@ function wait_steam_shutdown() {
         done
 }
 
-function steam_stopped(){
+steam_stopped () {
     if [ -f $HOME/.steampid ]; then
             read OLD_STEAM_PID < $HOME/.steampid
             if [ ! -d /proc/$OLD_STEAM_PID ]; then
@@ -73,7 +83,7 @@ function steam_stopped(){
     done
 }
 
-function disable_joysticks() {
+disable_joysticks () {
     find /dev/input -name "js*" | \
     while read -r dev; do
         # Get the name of the joystick model
@@ -85,18 +95,18 @@ function disable_joysticks() {
     done
 }
 
-function kill_OpenBox(){
+kill_OpenBox () {
         openbox --exit
 }
 
-function kill_XFWM4(){
+kill_XFWM4 () {
         [ -z "$XFWM4_PID" ] && return
         [ ! -d "/proc/$XFWM4_PID" ] && return
         kill $XFWM4_PID &> /dev/null && sleep 1
         kill -s 9 $XFWM4_PID &> /dev/null
 }
 
-function steam_de_exit(){
+steam_de_exit () {
         INFO "Steam-DE cooling"
         steam_stopped
         case $WM_NAME in
@@ -132,16 +142,18 @@ if cmd_exist xfwm4; then
 else
         STATUS="missing"
 fi
-INFO "Check: xfwm4 $STATUS"
 
+#       Checking xfwm4 status
+INFO "Check: xfwm4 $STATUS"
 if cmd_exist openbox; then
         WM_NAME=openbox
         STATUS="found"
 else
         STATUS="missing"
 fi
-INFO "Check: openbox $STATUS"
 
+#       checking openbox status
+INFO "Check: openbox $STATUS"
 if [ -z "$WM_NAME" ]; then
         ERRO "Can't find supported WM in PATH"
 fi
@@ -152,40 +164,45 @@ if cmd_exist steam-native; then
 else
         STATUS="missing"
 fi
-INFO "Check: steam-native $STATUS"
 
+#       checking steam-native status
+INFO "Check: steam-native $STATUS"
 if cmd_exist optirun; then
         OPTIRUN="$(get_path optirun)"
         STATUS="found"
 else
         STATUS="missing"
 fi
-INFO "Check: optirun $STATUS"
 
+#checking optirun status
+INFO "Check: optirun $STATUS"
 if cmd_exist primusrun; then
         PRIMUSRUN="$(get_path primusrun)"
         STATUS="found"
 else
         STATUS="missing"
 fi
-INFO "Check: primusrun $STATUS"
 
+#check primusrun status
+INFO "Check: primusrun $STATUS"
 if cmd_exist nvidia-settings; then
         NVIDIA_SETTINGS="$(get_path nvidia-settings)"
         STATUS="found"
 else
         STATUS="missing"
 fi
-INFO "Check: nvidia-settings $STATUS"
 
+#check nvidia-settings status
+INFO "Check: nvidia-settings $STATUS"
 if cmd_exist gnome-settings-daemon; then
         GNOME_SETTINGS_DAEMON="$(get_path gnome-settings-daemon)"
         STATUS="found"
 else
         STATUS="missing"
 fi
-INFO "Check: gnome-settings-daemon $STATUS"
 
+#check gnome-settings-daemon status
+INFO "Check: gnome-settings-daemon $STATUS"
 if [ ! -z "$STEAM_NATIVE" ]; then
         INFO "Use steam-native instead of steam"
         PROGRAM="$STEAM_NATIVE"
