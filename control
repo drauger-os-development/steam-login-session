@@ -2,7 +2,7 @@ Package: steam-login-session
 Version: 12
 Maintainer: Thomas Castleman <draugeros@gmail.com>
 Section: x11
-Homepage: https://github.com/batcastle/steam-login
+Homepage: https://github.com/batcastle/steam-login-session
 Architecture: all
 Priority: optional
 Suggests: bumblebee (>=3.2.1-17), gnome-settings-daemon (>=3.28.1-0ubuntu1.1), nvidia-settings (>=415.27-0ubuntu0~gpu18.04.1), primus (>=0~20150328-6), xserver-xorg-input-joystick (>=1:1.6.3-1build1)

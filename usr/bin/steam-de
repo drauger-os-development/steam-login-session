@@ -24,17 +24,17 @@ export STEAM_DE_PID=$$
 export WM_NAME
 
 ## Define logging function
-echo "Start Steam Session - `date`" > /tmp/steam-de.$UID.log
+/bin/echo "Start Steam Session - $(/bin/date)" > /tmp/steam-de."$UID".log
 INFO () {
-        echo "INFO: $*" | tee -a /tmp/steam-de.$UID.log;
+        /bin/echo "INFO: $*" | /usr/bin/tee -a /tmp/steam-de."$UID".log;
 }
 
 WARN () {
-        echo "WARN: $*" | tee -a /tmp/steam-de.$UID.log;
+        /bin/echo "WARN: $*" | /usr/bin/tee -a /tmp/steam-de."$UID".log;
 }
 
 ERRO () {
-        echo "ERRO: $*" | tee -a /tmp/steam-de.$UID.log; exit 1;
+        /bin/echo "ERRO: $*" | /usr/bin/tee -a /tmp/steam-de."$UID".log; exit 1;
 }
 
 cmd_exist () {
@@ -46,52 +46,52 @@ get_path () {
 }
 
 wait_steam_shutdown () {
-        $STEAM -shutdown &
+        "$STEAM" -shutdown &
         count=0
-        while [ -d /proc/$OLD_STEAM_PID ]; do
-            sleep 0.1
+        while [ -d /proc/"$OLD_STEAM_PID" ]; do
+            /bin/sleep 0.1
             ((count++==100)) && break
         done
 }
 
 steam_stopped () {
-    if [ -f $HOME/.steampid ]; then
-            read OLD_STEAM_PID < $HOME/.steampid
-            if [ ! -d /proc/$OLD_STEAM_PID ]; then
+    if [ -f "$HOME"/.steampid ]; then
+            read OLD_STEAM_PID < "$HOME"/.steampid
+            if [ ! -d /proc/"$OLD_STEAM_PID" ]; then
                 unset OLD_STEAM_PID
-                rm -f $HOME/.steampid
+                /bin/rm -f "$HOME"/.steampid
             else
                 wait_steam_shutdown $1
             fi
     fi
     PIDS_TO_KILL=(
         $OLD_STEAM_PID
-        $(pidof steam)
-        $(pidof steam.sh)
-        $(pidof MainThrd)
+        $(/bin/pidof steam)
+        $(/bin/pidof steam.sh)
+        $(/bin/pidof MainThrd)
     )
 
     ((${#PIDS_TO_KILL[@]} == 0)) && return
 
     # Stop all running steam process
-    INFO "Pids to kill: ${PIDS_TO_KILL[*]}"
+    INFO "Pids to /bin/kill: ${PIDS_TO_KILL[*]}"
     for pid in "${PIDS_TO_KILL[@]}"; do
             while ((PID > 1)) && [ -d "/proc/$PID" ]; do
-                    kill $pid &> /dev/null && sleep 1
-                    kill -s 9 $pid &> /dev/null
+                    /bin/kill "$pid" &> /dev/null && /bin/sleep 1
+                    /bin/kill -s 9 $pid &> /dev/null
             done
     done
 }
 
 disable_joysticks () {
-    find /dev/input -name "js*" | \
+    /usr/bin/find /dev/input -name "js*" | \
     while read -r dev; do
         # Get the name of the joystick model
-        name="`udevadm info --query=property --name=$dev | grep ID_VENDOR_ENC | cut -c15- -` `udevadm info --query=property --name=$dev | grep ID_MODEL_ENC | cut -c14- -`"
+        name="$(/sbin/udevadm info --query=property --name=$dev | /bin/grep ID_VENDOR_ENC | /usr/bin/cut -c15- -) &(/sbin/udevadm info --query=property --name=$dev | /bin/grep ID_MODEL_ENC | /usr/bin/cut -c14- -)"
         # Escape \ sequences
-        name="`echo -e "$name"`"
+        name="`/bin/echo -e "$name"`"
         # Disable the joystick
-        xinput --list | grep "$name" | grep -Pwo "id=[0-9]*" | grep -Pwo "[0-9]*" | xargs xinput --disable
+        /usr/bin/xinput --list | /bin/grep "$name" | /bin/grep -Pwo "id=[0-9]*" | /bin/grep -Pwo "[0-9]*" | /usr/bin/xargs /usr/bin/xinput --disable
     done
 }
 
@@ -102,8 +102,8 @@ kill_OpenBox () {
 kill_XFWM4 () {
         [ -z "$XFWM4_PID" ] && return
         [ ! -d "/proc/$XFWM4_PID" ] && return
-        kill $XFWM4_PID &> /dev/null && sleep 1
-        kill -s 9 $XFWM4_PID &> /dev/null
+        /bin/kill "$XFWM4_PID" &> /dev/null && /bin/sleep 1
+        /bin/kill -s 9 "$XFWM4_PID" &> /dev/null
 }
 
 steam_de_exit () {
@@ -185,15 +185,15 @@ fi
 
 #check primusrun status
 INFO "Check: primusrun $STATUS"
-if cmd_exist nvidia-settings; then
-        NVIDIA_SETTINGS="$(get_path nvidia-settings)"
+if cmd_exist /usr/bin/nvidia-settings; then
+        NVIDIA_SETTINGS="$(get_path /usr/bin/nvidia-settings)"
         STATUS="found"
 else
         STATUS="missing"
 fi
 
-#check nvidia-settings status
-INFO "Check: nvidia-settings $STATUS"
+#check /usr/bin/nvidia-settings status
+INFO "Check: /usr/bin/nvidia-settings $STATUS"
 if cmd_exist gnome-settings-daemon; then
         GNOME_SETTINGS_DAEMON="$(get_path gnome-settings-daemon)"
         STATUS="found"
@@ -224,17 +224,17 @@ if [ ! -z "$OPTIRUN" ] || [ ! -z "$PRIMUSRUN" ]; then
         fi
 fi
 
-# Disable xinput for joysticks
-if cmd_exist xinput; then
-        INFO "Disable xinput for joysticks"
+# Disable /usr/bin/xinput for joysticks
+if cmd_exist /usr/bin/xinput; then
+        INFO "Disable /usr/bin/xinput for joysticks"
         disable_joysticks
 fi
 
 case $WM_NAME in
         xfwm4)
                 INFO "Start XFWM4 Window manager"
-                xfwm4 --replace --daemon --compositor=off
-                XFWM4_PID="$(pidof xfwm4)"
+                /usr/bin/xfwm4 --replace --daemon --compositor=off
+                XFWM4_PID="$(/bin/pidof xfwm4)"
         ;;
         openbox)
                 INFO "Start OpenBox Window manager"
@@ -246,8 +246,8 @@ esac
 if [ ! -z "$NVIDIA_SETTINGS" ] || [ ! -z "$GNOME_SETTINGS_DAEMON" ]; then
         INFO "Start basic video settings process"
         if [ ! -z "$NVIDIA_SETTINGS" ]; then
-                INFO "Run nvidia-settings"
-                nvidia-settings -l
+                INFO "Run /usr/bin/nvidia-settings"
+                /usr/bin/nvidia-settings -l
         fi
         if [ ! -z "$GNOME_SETTINGS_DAEMON" ]; then
                 INFO "Run gnome-settings-daemon"
@@ -260,12 +260,12 @@ steam_stopped
 
 export SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS=0
 INFO "Disable: DPMS"
-xset -dpms
+/usr/bin/xset -dpms
 
 INFO "Disable: screen blanking"
-xset s off
+/usr/bin/xset s off
 
 INFO "Start Steam Manager"
-python3 /usr/share/steam-de/steamde.py 2>&1 | tee -a /tmp/steam-de.$UID.log
+/usr/bin/python3 /usr/share/steam-de/steamde.py 2>&1 | /usr/bin/tee -a /tmp/steam-de.$UID.log
 
 exit 0
