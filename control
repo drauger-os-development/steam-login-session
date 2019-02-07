@@ -1,6 +1,6 @@
 Package: steam-login-session
 Version: 12
-Maintainer: Thomas Castleman <draugeros@gmail.com>
+Maintainer: Thomas Castleman <contact@draugeros.ml>
 Section: x11
 Homepage: https://github.com/batcastle/steam-login-session
 Architecture: all
