@@ -1,6 +1,7 @@
 #!/bin/bash
 # STEAM DE - Script for starting Steam at login
 # Copyright (C) 2012  Thomaz de Oliveira dos Reis <thor27@gmail.com>
+# Modified, 2019, Thomas Castleman <contact@draugeros.ml>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

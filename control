@@ -11,4 +11,4 @@ Replaces: steam-session (<=11)
 Description: Launch Steam Big Picture from your login screen
  Log straight into Steam Big Picture mode from your login page. Based off of steam-session by Thomaz Reis at https://github.com/thor27/steam-login/
  .
- With the release of Steam Beta, and steam BigPicture mode on Linux, this package will put Steam as a login option, so you will be able to open only Steam and needed software to make it run correctly. It's almost a Steam Desktop.
+ With the release of Steam Beta, and Steam Big Picture mode on Linux, this package will put Steam as a login option, so you will be able to open only Steam and needed software to make it run correctly. It's almost a Steam Desktop Environment.
