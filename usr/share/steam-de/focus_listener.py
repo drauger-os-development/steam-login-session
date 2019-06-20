@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # STEAM DE - Focus Listener
 #
 # Adapted from

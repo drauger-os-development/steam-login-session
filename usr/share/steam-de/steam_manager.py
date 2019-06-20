@@ -1,3 +1,4 @@
+#!/bin/python3
 # STEAM DE - Steam Manager
 #
 # Based on code by Stephan Sokolow
