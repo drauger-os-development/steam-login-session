@@ -1,12 +1,11 @@
 Package: steam-login-session
-Version: 13.1
-Maintainer: Thomas Castleman <contact@draugeros.ml>
+Version: 14.0.0
+Maintainer: Thomas Castleman <contact@draugeros.org>
 Section: x11
-Homepage: https://github.com/batcastle/steam-login-session
+Homepage: https://github.com/drauger-os-development/steam-login-session
 Architecture: all
 Priority: optional
-Suggests: bumblebee (>=3.2.1-17), gnome-settings-daemon (>=3.28.1-0ubuntu1.1), nvidia-settings (>=415.27-0ubuntu0~gpu18.04.1), primus (>=0~20150328-6), xserver-xorg-input-joystick (>=1:1.6.3-1build1)
-Depends: steam (>=1:1.0.0.54+repack-5ubuntu1) | steam-launcher (>=1.0.0.59), python3 (>=3.6.7-1~18.04), x11-xserver-utils (>=7.7+7build1), xfwm4 (>=4.12.4-0ubuntu1), xinput (>=1.6.2-1build1), zenity (>=3.28.1-1)
+Depends: steam (>=1:1.0.0.54+repack-5ubuntu1), python3 (>=3.8), xfwm4 (>=4.12.4-0ubuntu1), python3-psutil
 Replaces: steam-session (<=11)
 Description: Launch Steam Big Picture from your login screen
  Log straight into Steam Big Picture mode from your login page. Based off of steam-session by Thomaz Reis at https://github.com/thor27/steam-login/

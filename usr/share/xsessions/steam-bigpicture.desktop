@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Steam Big Picture Mode
-Comment=This session logs you directly to STEAM
+Comment=This session logs you directly into STEAM
 Exec=/usr/bin/steam-de
 Icon=steam
 Type=Application
