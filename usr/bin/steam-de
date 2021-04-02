@@ -1,272 +1,152 @@
-#!/bin/bash
-# STEAM DE - Script for starting Steam at login
-# Copyright (C) 2012  Thomaz de Oliveira dos Reis <thor27@gmail.com>
-# Modified, 2019, Thomas Castleman <contact@draugeros.ml>
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  steam-de
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  Copyright 2020 Thomas Castleman <contact@draugeros.org>
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
-#set -Ee
-
-## Global vars
-export XFWM4_PID
-export STEAM_DE_PID=$$
-export WM_NAME
-
-## Define logging function
-/bin/echo "Start Steam Session - $(/bin/date)" > /tmp/steam-de."$UID".log
-INFO () {
-        /bin/echo "INFO: $*" | /usr/bin/tee -a /tmp/steam-de."$UID".log;
-}
-
-WARN () {
-        /bin/echo "WARN: $*" | /usr/bin/tee -a /tmp/steam-de."$UID".log;
-}
-
-ERRO () {
-        /bin/echo "ERRO: $*" | /usr/bin/tee -a /tmp/steam-de."$UID".log; exit 1;
-}
-
-cmd_exist () {
-        command -v "$1" &> /dev/null;
-}
-
-get_path () {
-        command -v "$1"
-}
-
-wait_steam_shutdown () {
-        "$STEAM" -shutdown &
-        count=0
-        while [ -d /proc/"$OLD_STEAM_PID" ]; do
-            /bin/sleep 0.1
-            ((count++==100)) && break
-        done
-}
-
-steam_stopped () {
-    if [ -f "$HOME"/.steampid ]; then
-            read OLD_STEAM_PID < "$HOME"/.steampid
-            if [ ! -d /proc/"$OLD_STEAM_PID" ]; then
-                unset OLD_STEAM_PID
-                /bin/rm -f "$HOME"/.steampid
-            else
-                wait_steam_shutdown $1
-            fi
-    fi
-    PIDS_TO_KILL=(
-        $OLD_STEAM_PID
-        $(/bin/pidof steam)
-        $(/bin/pidof steam.sh)
-        $(/bin/pidof MainThrd)
-    )
-
-    ((${#PIDS_TO_KILL[@]} == 0)) && return
-
-    # Stop all running steam process
-    INFO "Pids to /bin/kill: ${PIDS_TO_KILL[*]}"
-    for pid in "${PIDS_TO_KILL[@]}"; do
-            while ((PID > 1)) && [ -d "/proc/$PID" ]; do
-                    /bin/kill "$pid" &> /dev/null && /bin/sleep 1
-                    /bin/kill -s 9 $pid &> /dev/null
-            done
-    done
-}
-
-disable_joysticks () {
-    /usr/bin/find /dev/input -name "js*" | \
-    while read -r dev; do
-        # Get the name of the joystick model
-        name="$(/sbin/udevadm info --query=property --name=$dev | /bin/grep ID_VENDOR_ENC | /usr/bin/cut -c15- -) &(/sbin/udevadm info --query=property --name=$dev | /bin/grep ID_MODEL_ENC | /usr/bin/cut -c14- -)"
-        # Escape \ sequences
-        name="`/bin/echo -e "$name"`"
-        # Disable the joystick
-        /usr/bin/xinput --list | /bin/grep "$name" | /bin/grep -Pwo "id=[0-9]*" | /bin/grep -Pwo "[0-9]*" | /usr/bin/xargs /usr/bin/xinput --disable
-    done
-}
-
-kill_OpenBox () {
-        openbox --exit
-}
-
-kill_XFWM4 () {
-        [ -z "$XFWM4_PID" ] && return
-        [ ! -d "/proc/$XFWM4_PID" ] && return
-        /bin/kill "$XFWM4_PID" &> /dev/null && /bin/sleep 1
-        /bin/kill -s 9 "$XFWM4_PID" &> /dev/null
-}
-
-steam_de_exit () {
-        INFO "Steam-DE cooling"
-        steam_stopped
-        case $WM_NAME in
-                xfwm4) kill_XFWM4 ;;
-                openbox) kill_OpenBox ;;
-        esac
-        INFO "Steam-DE stopped"
-        exit 0
-}
-
-## Main
-INFO "Initialization"
-# Vars to switch logic
-# if supported things found
-export STEAM STEAM_NATIVE
-export OPTIRUN PRIMUSRUN
-export NVIDIA_SETTINGS
-export GNOME_SETTINGS_DAEMON
-export PREFIX=""
-export PROGRAM=""
-export STEAM_ARGS="-tenfoot -enableremotecontrol"
-
-if cmd_exist steam; then
-        STEAM="$(get_path steam)"
-        INFO "Check: steam found"
-else
-        ERRO "Steam not found in PATH"
-fi
-
-if cmd_exist xfwm4; then
-        WM_NAME=xfwm4
-        STATUS="found"
-else
-        STATUS="missing"
-fi
-
-#       Checking xfwm4 status
-INFO "Check: xfwm4 $STATUS"
-if cmd_exist openbox; then
-        WM_NAME=openbox
-        STATUS="found"
-else
-        STATUS="missing"
-fi
-
-#       checking openbox status
-INFO "Check: openbox $STATUS"
-if [ -z "$WM_NAME" ]; then
-        ERRO "Can't find supported WM in PATH"
-fi
-
-if cmd_exist steam-native; then
-        STEAM_NATIVE="$(get_path steam-native)"
-        STATUS="found"
-else
-        STATUS="missing"
-fi
-
-#       checking steam-native status
-INFO "Check: steam-native $STATUS"
-if cmd_exist optirun; then
-        OPTIRUN="$(get_path optirun)"
-        STATUS="found"
-else
-        STATUS="missing"
-fi
-
-#checking optirun status
-INFO "Check: optirun $STATUS"
-if cmd_exist primusrun; then
-        PRIMUSRUN="$(get_path primusrun)"
-        STATUS="found"
-else
-        STATUS="missing"
-fi
-
-#check primusrun status
-INFO "Check: primusrun $STATUS"
-if cmd_exist /usr/bin/nvidia-settings; then
-        NVIDIA_SETTINGS="$(get_path /usr/bin/nvidia-settings)"
-        STATUS="found"
-else
-        STATUS="missing"
-fi
-
-#check /usr/bin/nvidia-settings status
-INFO "Check: /usr/bin/nvidia-settings $STATUS"
-if cmd_exist gnome-settings-daemon; then
-        GNOME_SETTINGS_DAEMON="$(get_path gnome-settings-daemon)"
-        STATUS="found"
-else
-        STATUS="missing"
-fi
-
-#check gnome-settings-daemon status
-INFO "Check: gnome-settings-daemon $STATUS"
-if [ ! -z "$STEAM_NATIVE" ]; then
-        INFO "Use steam-native instead of steam"
-        PROGRAM="$STEAM_NATIVE"
-else
-        INFO "Use steam instead of steam-native"
-        PROGRAM="$STEAM"
-fi
-
-trap steam_de_exit SIGINT SIGTERM EXIT
-
-if [ ! -z "$OPTIRUN" ] || [ ! -z "$PRIMUSRUN" ]; then
-        if [ ! -z "$PRIMUSRUN" ]; then
-                INFO "Use primusrun instead of optirun"
-                export vblank_mode=0
-                PREFIX="$OPTIRUN -b primus"
-        else
-                INFO "Use optirun instead of primusrun"
-                PREFIX="$OPTIRUN"
-        fi
-fi
-
-# Disable /usr/bin/xinput for joysticks
-if cmd_exist /usr/bin/xinput; then
-        INFO "Disable /usr/bin/xinput for joysticks"
-        disable_joysticks
-fi
-
-case $WM_NAME in
-        xfwm4)
-                INFO "Start XFWM4 Window manager"
-                /usr/bin/xfwm4 --replace --daemon --compositor=off
-                XFWM4_PID="$(/bin/pidof xfwm4)"
-        ;;
-        openbox)
-                INFO "Start OpenBox Window manager"
-                openbox --replace &
-        ;;
-esac
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+#
+#
+"""Launch Steam BPM as the DE"""
+from __future__ import print_function
+import sys
+import subprocess
+import os
+import time
+from sys import argv as ARGV
+import psutil
 
 
-if [ ! -z "$NVIDIA_SETTINGS" ] || [ ! -z "$GNOME_SETTINGS_DAEMON" ]; then
-        INFO "Start basic video settings process"
-        if [ ! -z "$NVIDIA_SETTINGS" ]; then
-                INFO "Run /usr/bin/nvidia-settings"
-                /usr/bin/nvidia-settings -l
-        fi
-        if [ ! -z "$GNOME_SETTINGS_DAEMON" ]; then
-                INFO "Run gnome-settings-daemon"
-                gnome-settings-daemon &
-        fi
-fi
+def __eprint__(*args, **kwargs):
+    """Make it easier for us to print to stderr"""
+    print(*args, file=sys.stderr, **kwargs)
 
-INFO "Ensure that steam is not running"
-steam_stopped
+if sys.version_info[0] == 2:
+    __eprint__("Please run with Python 3 as Python 2 is End-of-Life.")
+    sys.exit(2)
 
-export SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS=0
-INFO "Disable: DPMS"
-/usr/bin/xset -dpms
+# get length of argv
+ARGC = len(ARGV)
+SIGTERM = 15
+# Documentation stuffs
+VERSION = "14.0.0"
+HELP = """steam-login-session, Version %s
+-h, --help\t\tPrint this help dialog and exit.
+-v, --version\t\tPrint version and exit.
 
-INFO "Disable: screen blanking"
-/usr/bin/xset s off
+Pass nothing to start Steam DE.""" %  (VERSION)
+# Commands we need to run
+_COMMANDS = {
+    # Xfwm cause it's already installed
+    "launch_wm": ["/usr/bin/xfwm4", "--replace", "--compositor=off"],
+    # Configure X11 if using Nvidia
+    "config_nvidia": ["/usr/bin/nvidia-settings", "-l"],
+    # DPMS: Display Power Managment signaling
+    "dpms_off": ["/usr/bin/xset", "-dpms"],
+    "screen_blank_off": ["/usr/bin/xset", "s", "off"],
+    "start_steam": ["steam", "-bigpicture"],
+    "kill_steam": ["steam", "-shutdown"]}
 
-INFO "Start Steam Manager"
-/usr/bin/python3 /usr/share/steam-de/steamde.py 2>&1 | /usr/bin/tee -a /tmp/steam-de.$UID.log
 
-exit 0
+# Define all the functions we will need
+def is_steam_running():
+    """Check if Steam is running
+
+    Return value will be in format:
+
+    (bool, list)
+
+    Where bool is a boolean indicating whether Steam is running or not
+    and list is a list of pids for steam. If Steam is not running, this list
+    will contain only -1.
+    """
+    process_name = "steam"
+    pids = []
+    # Iterate over the all the running process
+    for proc in psutil.process_iter():
+        try:
+            # Check if process name contains the given name string.
+            if process_name in proc.name().lower():
+                pids.append(proc.pid)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    if len(pids) == 0:
+        return (False, [-1])
+    return (True, pids)
+
+
+if __name__ == "__main__":
+    if ARGC > 1:
+        if ARGV[1] in ("-h", "--help"):
+            print(HELP)
+            sys.exit(0)
+        elif ARGV[1] in ("-v", "--version"):
+            print(VERSION)
+            sys.exit(0)
+        else:
+            __eprint__("ERROR: %s : Not an understood flag")
+            print(HELP)
+            sys.exit(2)
+    else:
+        _steam_log_stdout = open("/tmp/steam_de-steam.log", "w+")
+        _steam_log_stderr = open("/tmp/steam_de-steam_err.log", "w+")
+        _wm_log_stdout = open("/tmp/steam_de-wm.log", "w+")
+        _wm_log_stderr = open("/tmp/steam_de-wm_err.log", "w+")
+        _etc_log = open("/tmp/steam_de-etc.log", "w+")
+        OUTPUT = is_steam_running()
+        if OUTPUT[0]:
+            for each in OUTPUT[1]:
+                os.kill(each, SIGTERM)
+        pid = subprocess.Popen(_COMMANDS["launch_wm"],
+                               stdout=_wm_log_stdout,
+                               stderr=_wm_log_stderr).pid
+        # Send Nvidia settings to X11 if using Nvidia
+        if os.path.isfile(_COMMANDS["config_nvidia"][0]):
+            subprocess.check_call(_COMMANDS["config_nvidia"])
+        # Give it a sec to get going
+        time.sleep(0.1)
+        subprocess.check_call(_COMMANDS["dpms_off"],
+                              stdout=_etc_log,
+                              stderr=_etc_log)
+        subprocess.check_call(_COMMANDS["screen_blank_off"],
+                              stdout=_etc_log,
+                              stderr=_etc_log)
+        # Close this log since it won't be written to anymore
+        _etc_log.flush()
+        _etc_log.close()
+        # Make sure everything is getting going.
+        time.sleep(0.25)
+        subprocess.check_call(_COMMANDS["start_steam"],
+                              stdout=_steam_log_stdout,
+                              stderr=_steam_log_stderr)
+        # Wait for a few seconds to Steam to get going before we start monitoring it
+        time.sleep(10)
+        while True:
+            OUTPUT = is_steam_running()
+            if OUTPUT[0] is False:
+                os.kill(pid, 15)
+                break
+            time.sleep(3)
+        # Flush buffers then close files
+        _steam_log_stdout.flush()
+        _steam_log_stderr.flush()
+        _wm_log_stdout.flush()
+        _wm_log_stderr.flush()
+        _steam_log_stdout.close()
+        _steam_log_stderr.close()
+        _wm_log_stdout.close()
+        _wm_log_stderr.close()
