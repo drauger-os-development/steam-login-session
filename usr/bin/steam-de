@@ -201,7 +201,7 @@ if __name__ == "__main__":
             if OUTPUT[0] is False:
                 os.kill(pid, 15)
                 break
-            time.sleep(3)
+            time.sleep(1)
         # Flush buffers then close files
         _steam_log_stdout.flush()
         _steam_log_stderr.flush()
