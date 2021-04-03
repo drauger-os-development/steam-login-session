@@ -44,7 +44,7 @@ ARGC = len(ARGV)
 SIGTERM = 15
 PID_FILE_LOC = "/tmp/steam-de.pid"
 # Documentation stuffs
-VERSION = "14.0.1"
+VERSION = "14.0.2"
 HELP = """steam-login-session, Version %s
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -162,7 +162,7 @@ if __name__ == "__main__":
             sys.exit(2)
     else:
         with open(PID_FILE_LOC, "w+") as pid_file:
-            pid_file.write(os.getpid())
+            pid_file.write(str(os.getpid()))
         _steam_log_stdout = open("/tmp/steam_de-steam.log", "w+")
         _steam_log_stderr = open("/tmp/steam_de-steam_err.log", "w+")
         _wm_log_stdout = open("/tmp/steam_de-wm.log", "w+")
