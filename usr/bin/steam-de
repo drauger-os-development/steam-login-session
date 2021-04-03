@@ -44,7 +44,7 @@ ARGC = len(ARGV)
 SIGTERM = 15
 PID_FILE_LOC = "/tmp/steam-de.pid"
 # Documentation stuffs
-VERSION = "14.0.2"
+VERSION = "14.0.3"
 HELP = """steam-login-session, Version %s
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -100,8 +100,14 @@ def _kill_steam_de():
     """Kill Steam-DE"""
     with open(PID_FILE_LOC, "r") as pid_file:
         pid = int(pid_file.read())
-    os.kill(pid, 15)
-    os.remove(PID_FILE_LOC)
+    try:
+        os.kill(pid, 15)
+    except ProcessLookupError:
+        pass
+    try:
+        os.remove(PID_FILE_LOC)
+    except FileNotFoundError:
+        pass
 
 
 def _kill_steam_nicely(time_out):
