@@ -39,14 +39,21 @@ if sys.version_info[0] == 2:
     __eprint__("Please run with Python 3 as Python 2 is End-of-Life.")
     sys.exit(2)
 
-# get length of argv
+# Random stuffs
 ARGC = len(ARGV)
 SIGTERM = 15
+PID_FILE_LOC = "/tmp/steam-de.pid"
 # Documentation stuffs
-VERSION = "14.0.0"
+VERSION = "14.0.1"
 HELP = """steam-login-session, Version %s
--h, --help\t\tPrint this help dialog and exit.
--v, --version\t\tPrint version and exit.
+-h, --help                     Print this help dialog and exit.
+-k, --kill-steam [time_out]    Kill Steam and log out the user.
+                               time_out: wait this long to log out the user
+                                         can be any value, in seconds,
+                                         over 0.
+
+-l, --logout [time_out]        Same as above.
+-v, --version                  Print version and exit.
 
 Pass nothing to start Steam DE.""" %  (VERSION)
 # Commands we need to run
@@ -89,11 +96,63 @@ def is_steam_running():
     return (True, pids)
 
 
+def _kill_steam_de():
+    """Kill Steam-DE"""
+    with open(PID_FILE_LOC, "r") as pid_file:
+        pid = int(pid_file.read())
+    os.kill(pid, 15)
+    os.remove(PID_FILE_LOC)
+
+
+def _kill_steam_nicely(time_out):
+    """Kill Steam gracefully"""
+    if isinstance(time_out, (int, float)):
+        time.sleep(time_out)
+    subprocess.check_call(_COMMANDS["kill_steam"])
+
+
+def _kill_steam_force():
+    """Kill Steam to log the user out.
+
+    time_out: How long to wait before killing steam
+    """
+    pids = is_steam_running()
+    if pids[0]:
+        for each in pids[1]:
+            os.kill(each, 15)
+    else:
+        __eprint__("WARNING: Steam is not running. Killing steam-de instead . . .")
+
+
+
 if __name__ == "__main__":
     if ARGC > 1:
         if ARGV[1] in ("-h", "--help"):
             print(HELP)
             sys.exit(0)
+        elif ARGV[1] in ("-l", "-k", "--kill-steam", "--logout"):
+            if ARGC > 2:
+                try:
+                    _kill_steam_nicely(float(ARGV[2]))
+                    time.sleep(0.1)
+                    if is_steam_running()[0]:
+                        _kill_steam_force()
+                        time.sleep(0.1)
+                        if is_steam_running()[0]:
+                            _kill_steam_de()
+
+                except ValueError:
+                    __eprint__("ERROR: %s is not a valid length of time")
+                    print(HELP)
+                    sys.exit(1)
+            else:
+                _kill_steam_nicely(0)
+                time.sleep(0.1)
+                if is_steam_running()[0]:
+                    _kill_steam_force()
+                    time.sleep(0.1)
+                    if is_steam_running()[0]:
+                        _kill_steam_de()
         elif ARGV[1] in ("-v", "--version"):
             print(VERSION)
             sys.exit(0)
@@ -102,6 +161,8 @@ if __name__ == "__main__":
             print(HELP)
             sys.exit(2)
     else:
+        with open(PID_FILE_LOC, "w+") as pid_file:
+            pid_file.write(os.getpid())
         _steam_log_stdout = open("/tmp/steam_de-steam.log", "w+")
         _steam_log_stderr = open("/tmp/steam_de-steam_err.log", "w+")
         _wm_log_stdout = open("/tmp/steam_de-wm.log", "w+")
@@ -133,7 +194,7 @@ if __name__ == "__main__":
         subprocess.check_call(_COMMANDS["start_steam"],
                               stdout=_steam_log_stdout,
                               stderr=_steam_log_stderr)
-        # Wait for a few seconds to Steam to get going before we start monitoring it
+        # Wait for a few seconds for Steam to get going before we start monitoring it
         time.sleep(10)
         while True:
             OUTPUT = is_steam_running()
@@ -150,3 +211,5 @@ if __name__ == "__main__":
         _steam_log_stderr.close()
         _wm_log_stdout.close()
         _wm_log_stderr.close()
+        # Close up shop and exit
+        os.remove(PID_FILE_LOC)
