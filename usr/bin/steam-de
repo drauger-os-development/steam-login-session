@@ -27,6 +27,7 @@ import sys
 import subprocess
 import os
 import time
+import json
 from sys import argv as ARGV
 import psutil
 
@@ -43,8 +44,9 @@ if sys.version_info[0] == 2:
 ARGC = len(ARGV)
 SIGTERM = 15
 PID_FILE_LOC = "/tmp/steam-de.pid"
+settings_file = "/etc/steam-login-session/settings.json"
 # Documentation stuffs
-VERSION = "14.0.4"
+VERSION = "14.0.5"
 HELP = """steam-login-session, Version %s
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -56,17 +58,31 @@ HELP = """steam-login-session, Version %s
 -v, --version                  Print version and exit.
 
 Pass nothing to start Steam DE.""" %  (VERSION)
+
+# Load settings
+with open(settings_file, "r") as file:
+    settings = json.load(file)
+
 # Commands we need to run
 _COMMANDS = {
     # Xfwm cause it's already installed
-    "launch_wm": ["/usr/bin/xfwm4", "--replace", "--compositor=off"],
+    "launch_wm": ["/usr/bin/xfwm4", "--replace", "--compositor="],
     # Configure X11 if using Nvidia
     "config_nvidia": ["/usr/bin/nvidia-settings", "-l"],
     # DPMS: Display Power Managment signaling
     "dpms_off": ["/usr/bin/xset", "-dpms"],
     "screen_blank_off": ["/usr/bin/xset", "s", "off"],
-    "start_steam": ["steam", "-bigpicture", "-steamos"],
+    "start_steam": ["steam", "-bigpicture"],
     "kill_steam": ["steam", "-shutdown"]}
+
+# Apply settings
+if settings["compositor"] in (True, "on", "yes"):
+    _COMMANDS["launch_wm"][-1] = _COMMANDS["launch_wm"][-1] + "on"
+else:
+    _COMMANDS["launch_wm"][-1] = _COMMANDS["launch_wm"][-1] + "off"
+
+if settings["steam_os_mode"] in (True, "on", "yes"):
+    _COMMANDS["start_steam"].append("-steamos")
 
 
 # Define all the functions we will need
