@@ -44,7 +44,7 @@ ARGC = len(ARGV)
 SIGTERM = 15
 PID_FILE_LOC = "/tmp/steam-de.pid"
 # Documentation stuffs
-VERSION = "14.0.3"
+VERSION = "14.0.4"
 HELP = """steam-login-session, Version %s
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -65,7 +65,7 @@ _COMMANDS = {
     # DPMS: Display Power Managment signaling
     "dpms_off": ["/usr/bin/xset", "-dpms"],
     "screen_blank_off": ["/usr/bin/xset", "s", "off"],
-    "start_steam": ["steam", "-bigpicture"],
+    "start_steam": ["steam", "-bigpicture", "-steamos"],
     "kill_steam": ["steam", "-shutdown"]}
 
 
