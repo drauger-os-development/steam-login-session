@@ -44,9 +44,10 @@ if sys.version_info[0] == 2:
 ARGC = len(ARGV)
 SIGTERM = 15
 PID_FILE_LOC = "/tmp/steam-de.pid"
-settings_file = "/etc/steam-login-session/settings.json"
+SETTINGS_DIR = "/etc/steam-login-session"
+settings_file = f"{SETTINGS_DIR}/settings.json"
 # Documentation stuffs
-VERSION = "14.0.5"
+VERSION = "14.0.9"
 HELP = """steam-login-session, Version %s
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -72,7 +73,7 @@ _COMMANDS = {
     # DPMS: Display Power Managment signaling
     "dpms_off": ["/usr/bin/xset", "-dpms"],
     "screen_blank_off": ["/usr/bin/xset", "s", "off"],
-    "start_steam": ["steam", "-bigpicture"],
+    "start_steam": ["steam"],
     "kill_steam": ["steam", "-shutdown"]}
 
 # Apply settings
@@ -83,6 +84,16 @@ else:
 
 if settings["steam_os_mode"] in (True, "on", "yes"):
     _COMMANDS["start_steam"].append("-steamos")
+
+if settings["deck_ui_mode"] in (True, "on", "yes"):
+    _COMMANDS["start_steam"].append("-gamepadui ")
+    if not os.path.exists(f"{SETTINGS_DIR}/first-deck-run.flag"):
+        _COMMANDS["start_steam"].append("-steampal")
+        _COMMANDS["start_steam"].append("-steamdeck")
+        with open(f"{SETTINGS_DIR}/first-deck-run.flag", "w+") as file:
+            file.write("")
+else:
+    _COMMAND["start_steam"].append("-bigpicture")
 
 
 # Define all the functions we will need
@@ -217,7 +228,7 @@ if __name__ == "__main__":
                               stdout=_steam_log_stdout,
                               stderr=_steam_log_stderr)
         # Wait for a few seconds for Steam to get going before we start monitoring it
-        time.sleep(10)
+        time.sleep(3)
         while True:
             OUTPUT = is_steam_running()
             if OUTPUT[0] is False:
