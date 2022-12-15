@@ -47,7 +47,7 @@ PID_FILE_LOC = "/tmp/steam-de.pid"
 SETTINGS_DIR = "/etc/steam-login-session"
 settings_file = f"{SETTINGS_DIR}/settings.json"
 # Documentation stuffs
-VERSION = "14.0.9"
+VERSION = "14.1.2"
 HELP = """steam-login-session, Version %s
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -73,7 +73,7 @@ _COMMANDS = {
     # DPMS: Display Power Managment signaling
     "dpms_off": ["/usr/bin/xset", "-dpms"],
     "screen_blank_off": ["/usr/bin/xset", "s", "off"],
-    "start_steam": ["steam"],
+    "start_steam": ["steam", "-bigpicture"],
     "kill_steam": ["steam", "-shutdown"]}
 
 # Apply settings
@@ -83,17 +83,17 @@ else:
     _COMMANDS["launch_wm"][-1] = _COMMANDS["launch_wm"][-1] + "off"
 
 if settings["steam_os_mode"] in (True, "on", "yes"):
-    _COMMANDS["start_steam"].append("-steamos")
+    add = "-steamos"
+    if settings["on_deck"] in (True, "on", "yes"):
+        add = add + "3"
+    _COMMANDS["start_steam"].append(add)
+
+if settings["on_deck"] in (True, "on", "yes"):
+    _COMMANDS["start_steam"].append("-steamdeck")
 
 if settings["deck_ui_mode"] in (True, "on", "yes"):
     _COMMANDS["start_steam"].append("-gamepadui ")
-    if not os.path.exists(f"{SETTINGS_DIR}/first-deck-run.flag"):
-        _COMMANDS["start_steam"].append("-steampal")
-        _COMMANDS["start_steam"].append("-steamdeck")
-        with open(f"{SETTINGS_DIR}/first-deck-run.flag", "w+") as file:
-            file.write("")
-else:
-    _COMMAND["start_steam"].append("-bigpicture")
+    _COMMANDS["start_steam"].append("-steampal")
 
 
 # Define all the functions we will need

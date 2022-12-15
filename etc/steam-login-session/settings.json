@@ -1,5 +1,6 @@
 {
 	"compositor": false,
 	"steam_os_mode": false,
-	"deck_ui_mode": true
+	"deck_ui_mode": true,
+	"on_deck": false
 }
