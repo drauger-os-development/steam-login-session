@@ -28,7 +28,6 @@ import subprocess
 import os
 import time
 import json
-from sys import argv as ARGV
 import psutil
 
 
@@ -41,7 +40,7 @@ if sys.version_info[0] == 2:
     sys.exit(2)
 
 # Random stuffs
-ARGC = len(ARGV)
+ARGC = len(sys.argv)
 SIGTERM = 15
 PID_FILE_LOC = "/tmp/steam-de.pid"
 SETTINGS_DIR = "/etc/steam-login-session"
@@ -160,13 +159,13 @@ def _kill_steam_force():
 
 if __name__ == "__main__":
     if ARGC > 1:
-        if ARGV[1] in ("-h", "--help"):
+        if sys.argv[1] in ("-h", "--help"):
             print(HELP)
             sys.exit(0)
-        elif ARGV[1] in ("-l", "-k", "--kill-steam", "--logout"):
+        elif sys.argv[1] in ("-l", "-k", "--kill-steam", "--logout"):
             if ARGC > 2:
                 try:
-                    _kill_steam_nicely(float(ARGV[2]))
+                    _kill_steam_nicely(float(sys.argv[2]))
                     time.sleep(0.1)
                     if is_steam_running()[0]:
                         _kill_steam_force()
@@ -186,7 +185,7 @@ if __name__ == "__main__":
                     time.sleep(0.1)
                     if is_steam_running()[0]:
                         _kill_steam_de()
-        elif ARGV[1] in ("-v", "--version"):
+        elif sys.argv[1] in ("-v", "--version"):
             print(VERSION)
             sys.exit(0)
         else:
