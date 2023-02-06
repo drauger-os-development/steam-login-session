@@ -93,7 +93,8 @@ if settings["on_deck"] in (True, "on", "yes"):
 if settings["deck_ui_mode"] in (True, "on", "yes"):
     _COMMANDS["start_steam"].append("-gamepadui")
     _COMMANDS["start_steam"].append("-steampal")
-
+else
+    _COMMANDS["start_steam"].append("-oldbigpicture")
 
 # Define all the functions we will need
 def is_steam_running():
