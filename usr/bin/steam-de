@@ -90,8 +90,7 @@ if settings["steam_os_mode"] in (True, "on", "yes"):
 if settings["on_deck"] in (True, "on", "yes"):
     _COMMANDS["start_steam"].append("-steamdeck")
 
-if settings["deck_ui_mode"] in (True, "on", "yes"):
-else
+if settings["deck_ui_mode"] in (False, "off", "no", "disable"):
     _COMMANDS["start_steam"].append("-oldbigpicture")
 
 # Define all the functions we will need
