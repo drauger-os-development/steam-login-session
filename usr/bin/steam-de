@@ -91,8 +91,6 @@ if settings["on_deck"] in (True, "on", "yes"):
     _COMMANDS["start_steam"].append("-steamdeck")
 
 if settings["deck_ui_mode"] in (True, "on", "yes"):
-    _COMMANDS["start_steam"].append("-gamepadui")
-    _COMMANDS["start_steam"].append("-steampal")
 else
     _COMMANDS["start_steam"].append("-oldbigpicture")
 
