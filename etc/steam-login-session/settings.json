@@ -2,5 +2,7 @@
 	"compositor": false,
 	"steam_os_mode": false,
 	"deck_ui_mode": true,
-	"on_deck": false
+	"on_deck": false,
+	"window_manager": "kwin_x11",
+	"steam_type": "flatpak"
 }

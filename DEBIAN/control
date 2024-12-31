@@ -1,12 +1,12 @@
 Package: steam-login-session
-Version: 14.1.4
+Version: 15.0.0
 Maintainer: Thomas Castleman <contact@draugeros.org>
 Section: x11
 Homepage: https://github.com/drauger-os-development/steam-login-session
 Architecture: all
 Priority: optional
-Depends: steam (>=1:1.0.0.54+repack-5ubuntu1), python3 (>=3.8), xfwm4 (>=4.12.4-0ubuntu1), python3-psutil
-Replaces: steam-session (<=11)
+Depends: python3 (>=3.10), xfwm4 (>=4.17.0) | kwin-x11 (>=4:5.26.11) | openbox (>=3.6.0), python3-psutil
+Replaces: steam-session
 Description: Launch Steam Big Picture from your login screen
  Log straight into Steam Big Picture mode from your login page. Based off of steam-session by Thomaz Reis at https://github.com/thor27/steam-login/
  .

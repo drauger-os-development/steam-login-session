@@ -3,7 +3,7 @@
 #
 #  steam-de
 #
-#  Copyright 2020 Thomas Castleman <contact@draugeros.org>
+#  Copyright 2025 Thomas Castleman <batcastle@draugeros.org>
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -35,19 +35,24 @@ def __eprint__(*args, **kwargs):
     """Make it easier for us to print to stderr"""
     print(*args, file=sys.stderr, **kwargs)
 
+
 if sys.version_info[0] == 2:
     __eprint__("Please run with Python 3 as Python 2 is End-of-Life.")
     sys.exit(2)
+
 
 # Random stuffs
 ARGC = len(sys.argv)
 SIGTERM = 15
 PID_FILE_LOC = "/tmp/steam-de.pid"
-SETTINGS_DIR = "/etc/steam-login-session"
+SETTINGS_DIR = "../../etc/steam-login-session"
+if not os.path.exists(SETTINGS_DIR):
+    SETTINGS_DIR = "/etc/steam-login-session"
 settings_file = f"{SETTINGS_DIR}/settings.json"
+launch_command_file = f"{SETTINGS_DIR}/launch_commands.json"
 # Documentation stuffs
-VERSION = "14.1.4"
-HELP = """steam-login-session, Version %s
+VERSION = "15.0.0"
+HELP = f"""steam-login-session, Version {VERSION}
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
                                time_out: wait this long to log out the user
@@ -57,30 +62,70 @@ HELP = """steam-login-session, Version %s
 -l, --logout [time_out]        Same as above.
 -v, --version                  Print version and exit.
 
-Pass nothing to start Steam DE.""" %  (VERSION)
+Pass nothing to start Steam DE."""
 
 # Load settings
 with open(settings_file, "r") as file:
     settings = json.load(file)
 
+with open(launch_command_file, "r") as file:
+    launch_commands = json.load(file)
+
 # Commands we need to run
 _COMMANDS = {
-    # Xfwm cause it's already installed
-    "launch_wm": ["/usr/bin/xfwm4", "--replace", "--compositor="],
     # Configure X11 if using Nvidia
     "config_nvidia": ["/usr/bin/nvidia-settings", "-l"],
     # DPMS: Display Power Managment signaling
     "dpms_off": ["/usr/bin/xset", "-dpms"],
     "screen_blank_off": ["/usr/bin/xset", "s", "off"],
-    "start_steam": ["steam", "-bigpicture"],
-    "kill_steam": ["steam", "-shutdown"]}
+    "start_steam": ["-bigpicture"],
+    "kill_steam": ["-shutdown"]}
 
 # Apply settings
-if settings["compositor"] in (True, "on", "yes"):
-    _COMMANDS["launch_wm"][-1] = _COMMANDS["launch_wm"][-1] + "on"
+# STEAM LAUNCH COMMAND
+if settings["steam_type"] in launch_commands["steam"]:
+    _COMMANDS["start_steam"] = launch_commands["steam"][settings["steam_type"]] + _COMMANDS["start_steam"]
+    _COMMANDS["kill_steam"] = launch_commands["steam"][settings["steam_type"]] + _COMMANDS["kill_steam"]
+elif settings["steam_type"].lower() == "auto":
+    for each in launch_commands["steam"]:
+        if os.path.exists(launch_commands["steam"][each][0]):
+            _COMMANDS["start_steam"] = launch_commands["steam"][each] + _COMMANDS["start_steam"]
+            _COMMANDS["kill_steam"] = launch_commands["steam"][each] + _COMMANDS["kill_steam"]
 else:
-    _COMMANDS["launch_wm"][-1] = _COMMANDS["launch_wm"][-1] + "off"
+    __eprint__("CANNOT FIND STEAM! EXITING!")
+    sys.exit(1)
 
+if _COMMANDS["start_steam"][0] == "/usr/bin/flatpak":
+    _COMMANDS["start_steam"].insert(-1, "@@")
+    _COMMANDS["start_steam"].append("@@")
+
+if _COMMANDS["kill_steam"][0] == "/usr/bin/flatpak":
+    _COMMANDS["kill_steam"].insert(-1, "@@")
+    _COMMANDS["kill_steam"].append("@@")
+
+
+# WINDOW MANAGER
+if settings["window_manager"] in launch_commands["window_manager"]:
+    _COMMANDS["launch_wm"] = launch_commands["window_manager"][settings["window_manager"]]["command"]
+elif settings["window_manager"].lower() == "auto":
+    for each in launch_commands["window_manager"]:
+        if os.path.exists(launch_commands["window_manager"][each]["command"][0]):
+            _COMMANDS["launch_wm"] = launch_commands["window_manager"][each]["command"]
+else:
+    __eprint__("CANNOT FIND WINDOW MANAGER! EXITING!")
+    sys.exit(1)
+
+
+# COMPOSITOR
+for each in launch_commands["window_manager"]:
+    if launch_commands["window_manager"][each]["command"] == _COMMANDS["launch_wm"]:
+        if launch_commands["window_manager"][each]["supports_comp"]:
+            if settings["compositor"] in (True, "on", "yes"):
+                _COMMANDS["launch_wm"][-1] = _COMMANDS["launch_wm"][-1] + "on"
+            else:
+                _COMMANDS["launch_wm"][-1] = _COMMANDS["launch_wm"][-1] + "off"
+
+# STEAM LAUNCH COMMAND EXTRAS
 if settings["steam_os_mode"] in (True, "on", "yes"):
     add = "-steamos"
     if settings["on_deck"] in (True, "on", "yes"):
