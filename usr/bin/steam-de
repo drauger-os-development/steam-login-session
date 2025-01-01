@@ -51,7 +51,7 @@ if not os.path.exists(SETTINGS_DIR):
 settings_file = f"{SETTINGS_DIR}/settings.json"
 launch_command_file = f"{SETTINGS_DIR}/launch_commands.json"
 # Documentation stuffs
-VERSION = "15.0.0"
+VERSION = "15.0.1"
 HELP = f"""steam-login-session, Version {VERSION}
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -83,14 +83,14 @@ _COMMANDS = {
 
 # Apply settings
 # STEAM LAUNCH COMMAND
-if settings["steam_type"] in launch_commands["steam"]:
-    _COMMANDS["start_steam"] = launch_commands["steam"][settings["steam_type"]] + _COMMANDS["start_steam"]
-    _COMMANDS["kill_steam"] = launch_commands["steam"][settings["steam_type"]] + _COMMANDS["kill_steam"]
+if settings["steam_type"] in launch_commands["steam_type"]:
+    _COMMANDS["start_steam"] = launch_commands["steam_type"][settings["steam_type"]] + _COMMANDS["start_steam"]
+    _COMMANDS["kill_steam"] = launch_commands["steam_type"][settings["steam_type"]] + _COMMANDS["kill_steam"]
 elif settings["steam_type"].lower() == "auto":
-    for each in launch_commands["steam"]:
-        if os.path.exists(launch_commands["steam"][each][0]):
-            _COMMANDS["start_steam"] = launch_commands["steam"][each] + _COMMANDS["start_steam"]
-            _COMMANDS["kill_steam"] = launch_commands["steam"][each] + _COMMANDS["kill_steam"]
+    for each in launch_commands["steam_type"]:
+        if os.path.exists(launch_commands["steam_type"][each][0]):
+            _COMMANDS["start_steam"] = launch_commands["steam_type"][each] + _COMMANDS["start_steam"]
+            _COMMANDS["kill_steam"] = launch_commands["steam_type"][each] + _COMMANDS["kill_steam"]
 else:
     __eprint__("CANNOT FIND STEAM! EXITING!")
     sys.exit(1)
@@ -137,6 +137,7 @@ if settings["on_deck"] in (True, "on", "yes"):
 
 if settings["deck_ui_mode"] in (False, "off", "no", "disable"):
     _COMMANDS["start_steam"].append("-oldbigpicture")
+
 
 # Define all the functions we will need
 def is_steam_running():

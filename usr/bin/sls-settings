@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+#  sls-settings
+#
+#  Copyright 2025 Thomas Castleman <batcastle@draugeros.org>
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+#
+#
+"""This is the CLI for controlling steam-login-session settings"""
+import sys
+import sls_settings as slss
+
+
+def __eprint__(*args, **kwargs):
+    """Make it easier for us to print to stderr"""
+    print(*args, file=sys.stderr, **kwargs)
+
+
+if sys.version_info[0] == 2:
+    __eprint__("Please run with Python 3 as Python 2 is End-of-Life.")
+    sys.exit(2)
+
+VERSION = "15.0.1"
+HELP = f"""sls-settings, Version {VERSION}
+Control Steam-Login-Session settings from the command line.
+
+ -b, --back-up-settings    Back up settings. (Automatically done if not backup exists.)
+ -h, --help                Print this help dialog and exit.
+ -r, --restore-settings    Restore backed up settings.
+ -v, --version             Print Version and exit."""
+
+
+def main(argv: list) -> None:
+    """Main function"""
+    if len(argv) == 1:
+        __eprint__("No arguments passed!")
+        __eprint__(HELP)
+        sys.exit(1)
+    if argv[1] in ("-h", "--help"):
+        print(HELP)
+        sys.exit(0)
+    elif argv[1] in ("-v", "--version"):
+        print(VERSION)
+        sys.exit(0)
+    elif argv[1] in ("-b", "--back-up-settings"):
+        print("BACKING UP SETTINGS!")
+        try:
+            if slss.BackUp_Settings.back_up():
+                print("SETTINGS BACKED UP SUCCESSFULLY!")
+                sys.exit(0)
+        except (PermissionError, FileNotFoundError):
+            __eprint__("SETTINGS BACKED UP FAILED! PLEASE RUN AS ROOT AND TRY AGAIN!")
+            sys.exit(1)
+    elif argv[1] in ("-r", "--restore-settings"):
+        print("BACKING UP SETTINGS!")
+        try:
+            if slss.BackUp_Settings.restore_backup():
+                print("SETTINGS RESTORED SUCCESSFULLY!")
+                sys.exit(0)
+            else:
+                __eprint__("SETTINGS FILE AND EXISTING BACK UP MATCHES!")
+                sys.exit(1)
+        except (PermissionError, FileNotFoundError):
+            __eprint__("SETTINGS RESTORE FAILED! PLEASE RUN AS ROOT AND TRY AGAIN!")
+            sys.exit(1)
+
+    else:
+        __eprint__(f"Argument(s) not recognized: {argv[1:]}")
+        __eprint__(HELP)
+        sys.exit(1)
+
+
+
+if __name__ == "__main__":
+    main(sys.argv)
