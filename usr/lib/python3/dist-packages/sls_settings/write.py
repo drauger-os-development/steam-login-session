@@ -27,8 +27,8 @@ import json
 class Write():
     """Reading Settings Object"""
     def __init__(self, settings_dir: str, auto_save=True):
-        self._commands_file = "f{settings_dir}/launch_commands.json"
-        self._settings_file = "f{settings_dir}/settings.json"
+        self._commands_file = f"{settings_dir}/launch_commands.json"
+        self._settings_file = f"{settings_dir}/settings.json"
         self.auto_save = auto_save
 
         self._commands = {}

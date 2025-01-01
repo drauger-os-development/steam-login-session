@@ -35,7 +35,7 @@ if sys.version_info[0] == 2:
     __eprint__("Please run with Python 3 as Python 2 is End-of-Life.")
     sys.exit(2)
 
-VERSION = "15.0.1"
+VERSION = "15.0.2"
 HELP = f"""sls-settings, Version {VERSION}
 Control Steam-Login-Session settings from the command line.
 
