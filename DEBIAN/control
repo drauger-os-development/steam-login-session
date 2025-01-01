@@ -7,7 +7,7 @@ Architecture: all
 Priority: optional
 Depends: python3 (>=3.10), xfwm4 (>=4.17.0) | kwin-x11 (>=4:5.26.11) | openbox (>=3.6.0), python3-psutil
 Replaces: steam-session
-Recommends: steam-login-session-qt-settings, steam-login-session-gtk-settings
+Recommends: steam-login-session-settings-qt, steam-login-session-settings-gtk
 Description: Launch Steam Big Picture from your login screen
  Log straight into Steam Big Picture mode from your login page. Based off of steam-session by Thomaz Reis at https://github.com/thor27/steam-login/
  .
