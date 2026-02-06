@@ -51,7 +51,7 @@ if not os.path.exists(SETTINGS_DIR):
 settings_file = f"{SETTINGS_DIR}/settings.json"
 launch_command_file = f"{SETTINGS_DIR}/launch_commands.json"
 # Documentation stuffs
-VERSION = "15.0.2"
+VERSION = "15.0.3"
 HELP = f"""steam-login-session, Version {VERSION}
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -95,11 +95,9 @@ else:
     __eprint__("CANNOT FIND STEAM! EXITING!")
     sys.exit(1)
 
-if _COMMANDS["start_steam"][0] == "/usr/bin/flatpak":
+if settings["steam_type"] == "flatpak":
     _COMMANDS["start_steam"].insert(-1, "@@")
     _COMMANDS["start_steam"].append("@@")
-
-if _COMMANDS["kill_steam"][0] == "/usr/bin/flatpak":
     _COMMANDS["kill_steam"].insert(-1, "@@")
     _COMMANDS["kill_steam"].append("@@")
 
@@ -130,13 +128,22 @@ if settings["steam_os_mode"] in (True, "on", "yes"):
     add = "-steamos"
     if settings["on_deck"] in (True, "on", "yes"):
         add = add + "3"
-    _COMMANDS["start_steam"].append(add)
+    if settings["steam_type"] == "flatpak":
+        _COMMANDS["start_steam"].insert(-1, add)
+    else:
+        _COMMANDS["start_steam"].append(add)
 
 if settings["on_deck"] in (True, "on", "yes"):
-    _COMMANDS["start_steam"].append("-steamdeck")
+    if settings["steam_type"] == "flatpak":
+        _COMMANDS["start_steam"].insert(-1, "-steamdeck")
+    else:
+        _COMMANDS["start_steam"].append("-steamdeck")
 
 if settings["deck_ui_mode"] in (False, "off", "no", "disable"):
-    _COMMANDS["start_steam"].append("-oldbigpicture")
+    if settings["steam_type"] == "flatpak":
+         _COMMANDS["start_steam"].insert(-1, "-oldbigpicture")
+    else:
+        _COMMANDS["start_steam"].append("-oldbigpicture")
 
 
 # Define all the functions we will need

@@ -19,6 +19,10 @@
         "kwin_x11": {
                 "command": ["/usr/bin/kwin_x11", "--replace"],
                 "supports_comp": false
+            },
+        "kwin_wayland": {
+                "command": ["/usr/bin/kwin_wayland", "--replace"],
+                "supports_comp": false
             }
     }
 }

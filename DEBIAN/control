@@ -1,11 +1,11 @@
 Package: steam-login-session
-Version: 15.0.2
+Version: 15.0.3
 Maintainer: Thomas Castleman <contact@draugeros.org>
 Section: x11
 Homepage: https://github.com/drauger-os-development/steam-login-session
 Architecture: all
 Priority: optional
-Depends: python3 (>=3.10), xfwm4 (>=4.17.0) | kwin-x11 (>=4:5.26.11) | openbox (>=3.6.0), python3-psutil
+Depends: python3 (>=3.11), xfwm4 (>=4.17.0) | kwin-x11 (>=4:5.27.11) | kwin-wayland (>=4:5.27.11) | openbox (>=3.6.0), python3-psutil
 Replaces: steam-session
 Recommends: steam-login-session-settings-qt, steam-login-session-settings-gtk
 Description: Launch Steam Big Picture from your login screen
