@@ -3,6 +3,6 @@
 	"steam_os_mode": false,
 	"deck_ui_mode": true,
 	"on_deck": false,
-	"window_manager": "kwin_x11",
-	"steam_type": "flatpak"
+	"window_manager": "kwin_wayland",
+	"steam_type": "auto"
 }

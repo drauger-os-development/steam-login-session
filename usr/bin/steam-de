@@ -51,7 +51,7 @@ if not os.path.exists(SETTINGS_DIR):
 settings_file = f"{SETTINGS_DIR}/settings.json"
 launch_command_file = f"{SETTINGS_DIR}/launch_commands.json"
 # Documentation stuffs
-VERSION = "15.0.3"
+VERSION = "15.0.4"
 HELP = f"""steam-login-session, Version {VERSION}
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -89,16 +89,24 @@ if settings["steam_type"] in launch_commands["steam_type"]:
 elif settings["steam_type"].lower() == "auto":
     for each in launch_commands["steam_type"]:
         if os.path.exists(launch_commands["steam_type"][each][0]):
-            _COMMANDS["start_steam"] = launch_commands["steam_type"][each] + _COMMANDS["start_steam"]
-            _COMMANDS["kill_steam"] = launch_commands["steam_type"][each] + _COMMANDS["kill_steam"]
+            if "flatpak" in launch_commands["steam_type"][each][0]:
+                # This is kinda diabolical, but it works.
+                output = subprocess.check_output(["flatpak", "list", "--system"]).decode() + subprocess.check_output(["flatpak", "list", "--user"]).decode()
+                if "Steam\tcom.valvesoftware.Steam\t" in output:
+                    _COMMANDS["start_steam"] = launch_commands["steam_type"][each] + _COMMANDS["start_steam"]
+                    _COMMANDS["kill_steam"] = launch_commands["steam_type"][each] + _COMMANDS["kill_steam"]
+            else:
+                _COMMANDS["start_steam"] = launch_commands["steam_type"][each] + _COMMANDS["start_steam"]
+                _COMMANDS["kill_steam"] = launch_commands["steam_type"][each] + _COMMANDS["kill_steam"]
 else:
     __eprint__("CANNOT FIND STEAM! EXITING!")
     sys.exit(1)
 
-if settings["steam_type"] == "flatpak":
-    _COMMANDS["start_steam"].insert(-1, "@@")
+# We have to check the command because if the user sets it to auto and is using the flatpak this the best way to catch this
+if "flatpak" in _COMMANDS["start_steam"][0]:
+    _COMMANDS["start_steam"].insert(-1, "@@u")
     _COMMANDS["start_steam"].append("@@")
-    _COMMANDS["kill_steam"].insert(-1, "@@")
+    _COMMANDS["kill_steam"].insert(-1, "@@u")
     _COMMANDS["kill_steam"].append("@@")
 
 
