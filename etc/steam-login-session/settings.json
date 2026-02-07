@@ -3,6 +3,6 @@
 	"steam_os_mode": false,
 	"deck_ui_mode": true,
 	"on_deck": false,
-	"window_manager": "kwin_wayland",
+	"window_manager": "gamescope",
 	"steam_type": "auto"
 }

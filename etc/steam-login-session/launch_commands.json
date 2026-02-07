@@ -23,6 +23,10 @@
         "kwin_wayland": {
                 "command": ["/usr/bin/kwin_wayland", "--replace"],
                 "supports_comp": false
+            },
+        "gamescope": {
+                "command": ["/usr/games/gamescope", "-ef", "--expose-wayland", "--rt", "--force-windows-fullscreen"],
+                "supports_comp": false
             }
     }
 }

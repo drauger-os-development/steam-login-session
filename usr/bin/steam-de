@@ -51,7 +51,7 @@ if not os.path.exists(SETTINGS_DIR):
 settings_file = f"{SETTINGS_DIR}/settings.json"
 launch_command_file = f"{SETTINGS_DIR}/launch_commands.json"
 # Documentation stuffs
-VERSION = "15.0.4"
+VERSION = "15.0.5"
 HELP = f"""steam-login-session, Version {VERSION}
 -h, --help                     Print this help dialog and exit.
 -k, --kill-steam [time_out]    Kill Steam and log out the user.
@@ -263,28 +263,37 @@ if __name__ == "__main__":
         if OUTPUT[0]:
             for each in OUTPUT[1]:
                 os.kill(each, SIGTERM)
-        pid = subprocess.Popen(_COMMANDS["launch_wm"],
-                               stdout=_wm_log_stdout,
-                               stderr=_wm_log_stderr).pid
-        # Send Nvidia settings to X11 if using Nvidia
-        if os.path.isfile(_COMMANDS["config_nvidia"][0]):
-            subprocess.check_call(_COMMANDS["config_nvidia"])
-        # Give it a sec to get going
-        time.sleep(0.1)
-        subprocess.check_call(_COMMANDS["dpms_off"],
-                              stdout=_etc_log,
-                              stderr=_etc_log)
-        subprocess.check_call(_COMMANDS["screen_blank_off"],
-                              stdout=_etc_log,
-                              stderr=_etc_log)
-        # Close this log since it won't be written to anymore
-        _etc_log.flush()
-        _etc_log.close()
-        # Make sure everything is getting going.
-        time.sleep(0.25)
-        subprocess.check_call(_COMMANDS["start_steam"],
-                              stdout=_steam_log_stdout,
-                              stderr=_steam_log_stderr)
+        if settings["window_manager"] != "gamescope":
+            pid = subprocess.Popen(_COMMANDS["launch_wm"],
+                                   stdout=_wm_log_stdout,
+                                   stderr=_wm_log_stderr).pid
+            # Send Nvidia settings to X11 if using Nvidia
+            if os.path.isfile(_COMMANDS["config_nvidia"][0]):
+                subprocess.check_call(_COMMANDS["config_nvidia"])
+            # Give it a sec to get going
+            time.sleep(0.1)
+            subprocess.check_call(_COMMANDS["dpms_off"],
+                                  stdout=_etc_log,
+                                  stderr=_etc_log)
+            subprocess.check_call(_COMMANDS["screen_blank_off"],
+                                  stdout=_etc_log,
+                                  stderr=_etc_log)
+            # Make sure everything is getting going.
+            time.sleep(0.25)
+            _etc_log.write(f"Commands: {_COMMANDS}")
+
+            subprocess.check_call(_COMMANDS["start_steam"],
+                                  stdout=_steam_log_stdout,
+                                  stderr=_steam_log_stderr)
+        else:
+            start_cmd = _COMMANDS["launch_wm"]
+            start_cmd.append("--")
+            start_cmd = start_cmd + _COMMANDS["start_steam"]
+            _wm_log_stdout.write("NOT IN USE WITH GAMESCOPE")
+            _wm_log_stderr.write("NOT IN USE WITH GAMESCOPE")
+            subprocess.check_call(start_cmd,
+                                  stdout=_steam_log_stdout,
+                                  stderr=_steam_log_stderr)
         # Wait for a few seconds for Steam to get going before we start monitoring it
         time.sleep(3)
         while True:
@@ -298,9 +307,11 @@ if __name__ == "__main__":
         _steam_log_stderr.flush()
         _wm_log_stdout.flush()
         _wm_log_stderr.flush()
+        _etc_log.flush()
         _steam_log_stdout.close()
         _steam_log_stderr.close()
         _wm_log_stdout.close()
         _wm_log_stderr.close()
+        _etc_log.close()
         # Close up shop and exit
         os.remove(PID_FILE_LOC)
